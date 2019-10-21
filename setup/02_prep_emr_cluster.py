@@ -1,0 +1,61 @@
+# setup/prep_emr_cluster.py
+import tarfile
+import boto3
+import os
+
+
+#####################
+# This script will:
+#
+#
+# Note:
+# These environment variables are assumed to be available
+# in the shell or terminal where this script is ran:
+#
+# - S3_BUCKET
+# - AWS_REGION
+# -
+# -
+# -
+#####################
+
+
+def send_to_s3(client: boto3.client, local_file: str, s3_path_key: str, content_type: str) -> None:
+    client.put_object(
+        Bucket=os.getenv('S3_BUCKET'),
+        Key=s3_path_key,
+        Body=open(f'{local_file}', 'rb'),
+        ContentType=content_type
+    )
+
+
+def main() -> None:
+    s3 = boto3.client('s3')
+
+    tar_filename = 'emr_files.tar.gz'
+    bootstrap_emr_filename = 'bootstrap_emr.sh'
+
+    with tarfile.open(tar_filename, 'w:gz') as tar_file_obj:
+        for file in os.listdir('./emr_files'):
+            if not file.startswith('bootstrap'):
+                tar_file_obj.add(name=os.path.join('./emr_files', file))
+
+    send_to_s3(
+        client=s3,
+        local_file=tar_filename,
+        s3_path_key=f'emr_files/{tar_filename}',
+        content_type='application/x-tar'
+    )
+
+    send_to_s3(
+        client=s3,
+        local_file=f'emr_files/{bootstrap_emr_filename}',
+        s3_path_key=f'emr_files/{bootstrap_emr_filename}',
+        content_type='text/x-shellscript'
+    )
+
+    return
+
+
+if __name__ == '__main__':
+    main()
