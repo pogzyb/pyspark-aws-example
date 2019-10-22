@@ -1,4 +1,4 @@
-# setup/01_data_to_s3.py
+# setup/01_send_data_to_s3.py
 import boto3
 import requests
 import zipfile
