@@ -1,7 +1,55 @@
 {
-    "cluster_name": "spark-from-boto",
-    "master_node_type": "m4.large",
-    "worker_node_type": "m4.large",
-    "worker_node_count": 1,
-    "keypair_name": "general-key-pair"
+    "name": "bikeshare-spark-emr-cluster",
+    "instances": {
+        "InstanceGroups": [
+            {
+                "Name": "EmrMaster",
+                "Market": "SPOT",
+                "InstanceRole": "MASTER",
+                "BidPrice": "0.45",
+                "InstanceType": "m5x.large",
+                "InstanceCount": 1,
+                "Configurations": [
+                    {
+                        "Classification": "spark-env",
+                        "Configurations": [
+                            {
+                                "Classification": "export",
+                                "Properties": {
+                                    "PYSPARK_PYTHON": "/usr/bin/python3.6"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "Name": "EmrCore",
+                "Market": "SPOT",
+                "InstanceRole": "CORE",
+                "BidPrice": "0.45",
+                "InstanceType": "m5x.large",
+                "InstanceCount": 2
+            }
+        ],
+        "Ec2KeyName": "general-key-pair",
+        "KeepJobFlowAliveWhenNoSteps": true
+    },
+    "bootstrap-actions": [
+        {
+            "Name": "setup",
+            "ScriptBootstrapAction": {
+                "Path": "s3://{s3_bucket}/emr_files/bootstrap_emr.sh",
+                "Args": ["s3://{s3_bucket}/emr_files", "emr_files.tar.gz"]
+            }
+        }
+    ],
+    "applications": [
+        {
+            "Name": "Hadoop"
+        }, 
+        {
+            "Name": "Spark"
+        }
+    ]
 }
