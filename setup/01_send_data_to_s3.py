@@ -6,11 +6,11 @@ import io
 import os
 
 
-#####################
+###############################################################
 # This script will:
 # - download the .zip data files from capitalbikeshare's S3 bucket
-# - unzip each file
-# - put the unzipped csv's into your S3 bucket
+# - unzip each file (into an "archive" or folder of csv's)
+# - put the extracted csv's into the S3 bucket you provide
 #
 # Note:
 # These environment variables are assumed to be available
@@ -18,10 +18,9 @@ import os
 #
 # - S3_BUCKET
 # - AWS_REGION
-# -
-# -
-# -
-#####################
+# - AWS_SECRET_KEY_ID
+# - AWS_SECRET_ACCESS_KEY
+###############################################################
 
 
 def main() -> None:
@@ -46,7 +45,6 @@ def main() -> None:
                 Body=zipf.open(name),
                 ContentType='text/csv'
             )
-
     return
 
 
