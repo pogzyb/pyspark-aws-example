@@ -1,12 +1,13 @@
-# setup/prep_emr_cluster.py
+# setup/02_prep_emr_cluster.py
 import tarfile
 import boto3
 import os
 
 
-#####################
+###############################################################
 # This script will:
-#
+# - tar and send the emr_files directory to s3 (exclude tar'ing the bootstrap.sh file)
+# - send the bootstrap.sh file to s3 (not-tar'd)
 #
 # Note:
 # These environment variables are assumed to be available
@@ -14,10 +15,9 @@ import os
 #
 # - S3_BUCKET
 # - AWS_REGION
-# -
-# -
-# -
-#####################
+# - AWS_SECRET_KEY_ID
+# - AWS_SECRET_ACCESS_KEY
+###############################################################
 
 
 def send_to_s3(client: boto3.client, local_file: str, s3_path_key: str, content_type: str) -> None:
@@ -27,6 +27,7 @@ def send_to_s3(client: boto3.client, local_file: str, s3_path_key: str, content_
         Body=open(f'{local_file}', 'rb'),
         ContentType=content_type
     )
+    return
 
 
 def main() -> None:
@@ -53,7 +54,6 @@ def main() -> None:
         s3_path_key=f'emr_files/{bootstrap_emr_filename}',
         content_type='text/x-shellscript'
     )
-
     return
 
 
