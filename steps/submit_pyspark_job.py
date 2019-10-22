@@ -17,14 +17,9 @@ import os
 #####################
 
 
-def get_client(service: str) -> boto3.client:
-    client = boto3.client(service)
-    return client
-
-
 def main() -> None:
 
-    emr = get_client('emr')
+    emr = boto3.client('emr')
 
     job_name = 'bikeshare-ml'
 
