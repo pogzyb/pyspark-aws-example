@@ -1,0 +1,12 @@
+---
+version: '3.5'
+
+services:
+  notebook:
+    image: jupyter/pyspark-notebook
+    container_name: notebook
+    volumes:
+      - "./work:/home/jovyan/work"
+      - "./data:/home/jovyan/data"
+    ports:
+      - "8888:8888"
