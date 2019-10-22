@@ -1,7 +1,7 @@
 # bikeshare_ml_pipe.py
 from pyspark.sql import SparkSession
 from pyspark.ml.regression import RandomForestRegressor
-from pyspark.ml.tune import CrossValidator, ParamGridBuilder
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.feature import StringIndexer, OneHotEncoder, VectorAssembler
 from pyspark.ml.pipeline import Pipeline
@@ -9,10 +9,10 @@ import pyspark.sql.functions as F
 import argparse
 
 
-def run_pipeline(app_name: str, data_location: str) -> None:
+def run_pipeline(name: str, data: str, save: str) -> None:
 
-    spark = SparkSession.builder.appName(app_name).getOrCreate()
-    df = spark.read.csv(data_location + '/*', header=True)
+    spark = SparkSession.builder.appName(name).getOrCreate()
+    df = spark.read.csv(data + '/*', header=True)
     print(f'The Entire Dataset has [{df.count()}] Rows.')
 
     # remove very short and very long rides
