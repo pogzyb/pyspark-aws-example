@@ -1,5 +1,6 @@
 # steps/submit_pyspark_job.py
 import boto3
+import os
 
 #####################
 # This script will:
@@ -31,9 +32,9 @@ def main() -> None:
     cluster_id = resp.get('Clusters')[0]['Id']
 
     command = 'spark-submit /home/hadoop/bikeshare_ml/emr_files/bikeshare_ml_pipe.py ' \
-              '--name  ' \
-              '--data  ' \
-              '--save  '
+              f'--name  {job_name}' \
+              f'--data  {os.getenv("S3_BUCKET")}/bike-share-data' \
+              f'--save  {os.getenv("S3_BUCKET")}/models'
 
     job_step_response = emr.add_job_flow_steps(
         JobFlowId=cluster_id,
