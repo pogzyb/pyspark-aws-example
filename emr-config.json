@@ -1,0 +1,7 @@
+{
+    "cluster_name": "spark-from-boto",
+    "master_node_type": "m4.large",
+    "worker_node_type": "m4.large",
+    "worker_node_count": 1,
+    "keypair_name": "general-key-pair"
+}
