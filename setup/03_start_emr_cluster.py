@@ -7,9 +7,8 @@ from typing import Dict, Union
 
 ###############################################################
 # This script will:
-# - download the .zip data files from capitalbikeshare's S3 bucket
-# - unzip each file (into an "archive" or folder of csv's)
-# - put the extracted csv's into the S3 bucket you provide
+# - start an EMR cluster using the boto3 EMR client with
+# configurations as specified in "emr-config.json"
 #
 # Note:
 # These environment variables are assumed to be available

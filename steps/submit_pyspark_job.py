@@ -4,6 +4,7 @@ import os
 
 #####################
 # This script will:
+# - submit a "Step" or command to the EMR cluster (run the "bikeshare_ml_pipe.py" script)
 #
 # Note:
 # These environment variables are assumed to be available
@@ -11,20 +12,18 @@ import os
 #
 # - S3_BUCKET
 # - AWS_REGION
-# -
-# -
-# -
+# - AWS_SECRET_KEY_ID
+# - AWS_SECRET_ACCESS_KEY
 #####################
 
 
 def main() -> None:
 
     emr = boto3.client('emr')
-
-    job_name = 'bikeshare-ml'
-
     resp = emr.list_clusters(ClusterStates=['WAITING'])
     cluster_id = resp.get('Clusters')[0]['Id']
+
+    job_name = 'bikeshare_ml'
 
     command = 'spark-submit /home/hadoop/bikeshare_ml/emr_files/bikeshare_ml_pipe.py ' \
               f'--name  {job_name}' \
@@ -47,9 +46,9 @@ def main() -> None:
         ]
     )
     if job_step_response['ResponseMetadata']['HTTPStatusCode'] == 200:
-        print('Successfully submitted Job!')
+        print('Successfully Submitted Job!')
     else:
-        print(f'Error!: {job_step_response}')
+        print(f'Uh oh!:\n{job_step_response}')
 
     return
 

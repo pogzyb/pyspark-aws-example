@@ -9,6 +9,17 @@ import pyspark.sql.functions as F
 import argparse
 
 
+###############################################################
+# This script will:
+# - be located on the EMR cluster (put there via the "setup" bootstrap action)
+# - run on the EMR cluster (triggered via the submit_pyspark_job.py script)
+# - read in all csv's that are found in "s3://<your-bucket-name>/bike-share-data/*" (--data argument)
+# - create as well as drop features from the spark sql dataframe
+# - perform cross validation and extract the best model for transforming the test or holdout dataset
+# - create, fit, and save a "Pipeline" object to "s3://<your-bucket-name>/< --save argument >/< --name argument>"
+###############################################################
+
+
 def run_pipeline(name: str, data: str, save: str) -> None:
 
     spark = SparkSession.builder.appName(name).getOrCreate()

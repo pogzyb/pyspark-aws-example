@@ -10,7 +10,7 @@ import os
 # This script will:
 # - download the .zip data files from capitalbikeshare's S3 bucket
 # - unzip each file (into an "archive" or folder of csv's)
-# - put the extracted csv's into the S3 bucket you provide
+# - put the extracted csv's into "s3://<your-bucket-name>/bike-share-data/*"
 #
 # Note:
 # These environment variables are assumed to be available
