@@ -1,7 +1,7 @@
 CSV Files
 --
 The csv files for this example are large (150MB+).
-Instead of bogging down this repository with these files, I will leave it up to download and extract a reason sample for local EDA with Jupyter Notebook.
+Instead of bogging down this repository with these files, I will leave it up you to download and extract a reason sample for local EDA with Jupyter Notebook.
 
 Data source: 
 
