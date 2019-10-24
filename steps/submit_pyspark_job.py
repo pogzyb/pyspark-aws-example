@@ -26,8 +26,8 @@ def main() -> None:
     job_name = 'bikeshare_ml'
 
     command = 'spark-submit /home/hadoop/bikeshare_ml/emr_files/bikeshare_ml_pipe.py ' \
-              f'--name  {job_name}' \
-              f'--data  {os.getenv("S3_BUCKET")}/bike-share-data' \
+              f'--name  {job_name} ' \
+              f'--data  {os.getenv("S3_BUCKET")}/bike-share-data ' \
               f'--save  {os.getenv("S3_BUCKET")}/models'
 
     job_step_response = emr.add_job_flow_steps(
