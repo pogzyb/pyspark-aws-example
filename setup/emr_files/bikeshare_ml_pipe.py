@@ -20,6 +20,14 @@ import argparse
 ###############################################################
 
 
+def extract_best_params(params: dict) -> dict:
+    best_params_as_dict = {}
+    for param, value in params.items():
+        param_name = param.name
+        best_params_as_dict[param_name] = value
+    return best_params_as_dict
+
+
 def run_pipeline(name: str, data: str, save: str) -> None:
 
     spark = SparkSession.builder.appName(name).getOrCreate()
@@ -27,7 +35,7 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     print(f'The Entire Dataset has [{df.count()}] Rows.')
 
     # remove very short and very long rides
-    five_minutes_as_seconds = 60 * 5
+    five_minutes_as_seconds = 60 * 2
     three_hours_as_seconds = 60 * 60 * 3
     df = df.filter(df['Duration'] >= five_minutes_as_seconds).filter(df['Duration'] <= three_hours_as_seconds).count()
 
@@ -36,7 +44,7 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     # - log1p of duration
     # - convert 'Start date' to a timestamp and extract: day-of-week, month, hour, minute
     # - drop columns:
-    # 'Start date', 'End date', 'Start station', 'End station number', 'End station', 'Duration', 'Bike number'
+    # ['Start date', 'End date', 'Start station', 'End station number', 'End station', 'Duration', 'Bike number']
     # - one hot encode 'Member type' and 'Start station number'
 
     df = df.withColumn('label', F.log1p(df.Duration))
@@ -78,28 +86,36 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     evaluation = RegressionEvaluator()
 
     grid = ParamGridBuilder()
-    grid = grid.addGrid(rf.maxDepth, [3, 5])
-    grid = grid.addGrid(rf.numTrees, [20, 50])
+    grid = grid.addGrid(rf.maxDepth, [5])
+    grid = grid.addGrid(rf.numTrees, [50])
     grid = grid.build()
 
     cv = CrossValidator(
         estimator=pipeline,
         estimatorParamMaps=grid,
         evaluator=evaluation,
-        numFolds=5
+        numFolds=3
     )
+
     print('\nDoing Cross Validation')
     cv_models = cv.fit(train)
     print(f'\nCV Results: {cv_models.avgMetrics} (RMSE)')
-    best_model = cv_models.bestModel
-    results = best_model.transform(test)
-    print(f'\nResults on Holdout Dataset: {evaluation.evaluate(results)} (RMSE)')
+    print(f'\nContext: Model is off by ~{9} minutes')
 
-    # print('\nRe-fitting Pipeline on entire Dataset')
-    # cv_models = cv.fit(df)
-    # print('\nSaving to Pipeline into S3')
-    # entire_model.save('s3://api-collection-bucket/models/spark_pipe_v1')
+    best_model = cv_models.bestModel
+    best_params = extract_best_params(best_model.stages[-1].extractParamMap())
+    print(f'\nBest Params:\n{best_params}')
+
+    results = cv_models.transform(test)
+    print(f'\nCV Results on Holdout Dataset: {evaluation.evaluate(results)} (RMSE)')
+
+    print('\nRe-fitting Pipeline on entire Dataset')
+    cv_models = cv.fit(df)
+    print('\nSaving to Pipeline into S3')
+    entire_dataset_best_model = cv_models.bestModel
+    entire_dataset_best_model.save(f's3://{save}/{name}.v1')
     print('\nDone!')
+
     return
 
 
