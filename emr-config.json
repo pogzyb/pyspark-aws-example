@@ -7,7 +7,7 @@
                 "Market": "SPOT",
                 "InstanceRole": "MASTER",
                 "BidPrice": "0.45",
-                "InstanceType": "m5x.large",
+                "InstanceType": "m5.xlarge",
                 "InstanceCount": 1,
                 "Configurations": [
                     {
@@ -28,7 +28,7 @@
                 "Market": "SPOT",
                 "InstanceRole": "CORE",
                 "BidPrice": "0.45",
-                "InstanceType": "m5x.large",
+                "InstanceType": "m5.xlarge",
                 "InstanceCount": 2
             }
         ],
