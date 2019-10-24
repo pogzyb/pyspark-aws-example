@@ -45,6 +45,7 @@ def main() -> None:
                 Body=zipf.open(name),
                 ContentType='text/csv'
             )
+    print('Success - copied bike-share-data to S3!')
     return
 
 

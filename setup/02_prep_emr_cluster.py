@@ -54,6 +54,7 @@ def main() -> None:
         s3_path_key=f'emr_files/{bootstrap_emr_filename}',
         content_type='text/x-shellscript'
     )
+    print('Success - "emr_files" sent to S3!')
     return
 
 

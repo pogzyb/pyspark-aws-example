@@ -40,6 +40,7 @@ def create_spark_cluster(configs: Dict[str, Union[str, int]]) -> None:
 
     response = emr.run_job_flow(
         Name=configs.get('name'),
+        LogUri=configs.get('log-uri'),
         ReleaseLabel='emr-5.27.0',
         Instances=configs.get('instances'),
         Applications=configs.get('applications'),
