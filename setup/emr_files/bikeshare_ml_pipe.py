@@ -113,7 +113,7 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     cv_models = cv.fit(df)
     print('\nSaving to Pipeline into S3')
     entire_dataset_best_model = cv_models.bestModel
-    entire_dataset_best_model.save(f's3://{save}/{name}.v1')
+    entire_dataset_best_model.save(f'{save}/{name}.v1')
     print('\nDone!')
 
     return
