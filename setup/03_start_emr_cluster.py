@@ -32,6 +32,9 @@ def format_s3_bucket(bootstrap_actions: list) -> list:
 
 def create_spark_cluster(configs: Dict[str, Union[str, int]]) -> None:
 
+    copy_bs_actions = configs.get('bootstrap-actions')
+    configs['bootstrap-actions'] = format_s3_bucket(copy_bs_actions)
+
     emr = boto3.client('emr')
 
     response = emr.run_job_flow(
@@ -52,7 +55,7 @@ def create_spark_cluster(configs: Dict[str, Union[str, int]]) -> None:
 
 
 def main() -> None:
-    configs = json.loads('../emr-config.json')
+    configs = json.loads(open('../emr-config.json').read())
     create_spark_cluster(configs=configs)
     return
 
