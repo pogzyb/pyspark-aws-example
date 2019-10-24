@@ -1,5 +1,6 @@
 {
     "name": "bikeshare-spark-emr-cluster",
+    "log-uri": "s3://aws-logs-845313726624-us-east-2/elasticmapreduce/",
     "instances": {
         "InstanceGroups": [
             {
