@@ -22,6 +22,7 @@ from typing import Dict, Union
 
 
 def format_s3_bucket(bootstrap_actions: list) -> list:
+    # Useless function to populate "s3_bucket" within "emr-configs.json"
     for action in bootstrap_actions:
         action['ScriptBootstrapAction']['Path'] =\
             action['ScriptBootstrapAction']['Path'].format(s3_bucket=os.getenv('S3_BUCKET'))
