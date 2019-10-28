@@ -2,7 +2,7 @@ Data for this project
 --
 
 ### rides/*
-The csv files for this example are fairly large (50-100MB each).
+The csv files for this example are fairly large (100-200MB each).
 Instead of bogging down this repository with these files,
 I will leave it up you to either:
 
