@@ -138,7 +138,7 @@ def run_pipeline(name: str, data: str, save: str) -> None:
 
     # define RF model
     rf = RandomForestRegressor(
-        featureCols='scaled_features'
+        featuresCol='scaled_features'
     )
 
     # create pipeline and fill in stages
@@ -169,25 +169,25 @@ def run_pipeline(name: str, data: str, save: str) -> None:
         numFolds=7
     )
 
-    print('\nDoing Cross Validation')
+    print('Doing Cross Validation')
 
     cv_models = cv.fit(train)
-    print(f'\nCV results: {cv_models.avgMetrics} (RMSE)')
+    print(f'CV results: {cv_models.avgMetrics} (RMSE)')
 
     best_model = cv_models.bestModel
     best_params = extract_best_params(best_model.stages[-1].extractParamMap())
-    print(f'\nBest params:\n{best_params}')
+    print(f'Best params:\n{best_params}')
 
     results = cv_models.transform(test)
-    print(f'\nCV Results on holdout dataset: {evaluation.evaluate(results)} (RMSE)')
+    print(f'CV Results on holdout dataset: {evaluation.evaluate(results)} (RMSE)')
 
-    print('\nRe-fitting pipeline on entire dataset')
+    print('Re-fitting pipeline on entire dataset')
     cv_models = cv.fit(df)
 
-    print('\nSaving to pipeline into S3')
+    print('Saving to pipeline into S3')
     entire_dataset_best_model = cv_models.bestModel
     entire_dataset_best_model.save(f'{save}/{name}.v1')
-    print('\nDone!')
+    print('Done!')
 
     return
 
