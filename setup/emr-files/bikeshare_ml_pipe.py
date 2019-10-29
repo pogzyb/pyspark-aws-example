@@ -83,7 +83,7 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     df = df.withColumn('minute', F.minute('Start date'))
     df = df.withColumn('hour', F.hour('Start date'))
 
-    # convert time features into cyclical features
+    # make time features cyclical
     pi = 3.141592653589793
 
     df = df.withColumn('sin_day_of_week', F.sin(2 * pi * df['day_of_week'] / 7))
@@ -99,9 +99,17 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     df = df.withColumn('cos_hour', F.cos(2 * pi * df['hour'] / 24))
 
     # drop unused columns
-    df = df.drop('Start date', 'End date', 'Start station', 'End station number',
-                 'End station', 'Duration', 'Bike number', 'day_of_week', 'week_of_year',
-                 'month', 'minute', 'hour')
+    drop_columns = [
+        'Start date',
+        'Start station number',
+        'Duration',
+        'day_of_week',
+        'week_of_year',
+        'month',
+        'minute',
+        'hour'
+    ]
+    df = df.drop(*drop_columns)
 
     # Model and Pipeline #
 
@@ -116,6 +124,8 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     vector = VectorAssembler(
         inputCols=[
             'member_enc',
+            'start_station_lat',
+            'start_station_long',
             'sin_day_of_week',
             'cos_day_of_week',
             'sin_week_of_year',
