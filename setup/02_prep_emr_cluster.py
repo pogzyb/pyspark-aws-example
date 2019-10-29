@@ -6,7 +6,7 @@ import os
 
 ###############################################################
 # This script will:
-# - tar and send the emr_files directory to s3 (exclude tar'ing the bootstrap.sh file)
+# - tar and send the emr-files directory to s3 (exclude tar'ing the bootstrap.sh file)
 # - send the bootstrap.sh file to s3 (not-tar'd)
 #
 # Note:
@@ -33,28 +33,30 @@ def send_to_s3(client: boto3.client, local_file: str, s3_path_key: str, content_
 def main() -> None:
     s3 = boto3.client('s3')
 
-    tar_filename = 'emr_files.tar.gz'
+    bucket_project_folder = 'pyspark-example-problem'
+
+    tar_filename = 'emr-files.tar.gz'
     bootstrap_emr_filename = 'bootstrap_emr.sh'
 
     with tarfile.open(tar_filename, 'w:gz') as tar_file_obj:
-        for file in os.listdir('./emr_files'):
+        for file in os.listdir('./emr-files'):
             if not file.startswith('bootstrap'):
-                tar_file_obj.add(name=os.path.join('./emr_files', file))
+                tar_file_obj.add(name=os.path.join('./emr-files', file))
 
     send_to_s3(
         client=s3,
         local_file=tar_filename,
-        s3_path_key=f'emr_files/{tar_filename}',
+        s3_path_key=f'{bucket_project_folder}/emr-files/{tar_filename}',
         content_type='application/x-tar'
     )
 
     send_to_s3(
         client=s3,
-        local_file=f'emr_files/{bootstrap_emr_filename}',
-        s3_path_key=f'emr_files/{bootstrap_emr_filename}',
+        local_file=f'emr-files/{bootstrap_emr_filename}',
+        s3_path_key=f'{bucket_project_folder}/emr-files/{bootstrap_emr_filename}',
         content_type='text/x-shellscript'
     )
-    print('Success - "emr_files" sent to S3!')
+    print('Success - "emr-files" sent to S3!')
     return
 
 
