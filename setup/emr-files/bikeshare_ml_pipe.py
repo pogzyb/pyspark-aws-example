@@ -37,14 +37,14 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     # Dataset Creation #
 
     # read bike ride history csv's
-    df = spark.read.csv(data + '/*', header=True)
+    df = spark.read.csv(f'{data}/rides/*', header=True)
     df = df.select(['Duration', 'Start date', 'Start station number', 'Member type'])
     df = df.withColumn('Start station number', df['Start station number'].cast(IntegerType()))
-    print(f'The entire dataset has [{df.count()}] Rows.')
+    print(f'The rides dataset has [{df.count()}] rows!')
 
     # read station information csv
-    stations = spark.read.csv("/home/jovyan/data/stations/*", header=True)
-    print(f'There are {stations.count()} rows in the stations')
+    stations = spark.read.csv(f'{data}/stations/*', header=True)
+    print(f'The stations dataset has {stations.count()} rows!')
     stations = stations.withColumnRenamed('LATITUDE', 'start_station_lat')
     stations = stations.withColumnRenamed('LONGITUDE', 'start_station_long')
     stations = stations.withColumn('Start station number', stations['TERMINAL_NUMBER'].cast(IntegerType()))
@@ -57,19 +57,23 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     # remove unknown 'Member type's
     df = df.filter(~(df['Member type'] == 'Unknown'))
 
-    # remove non-existent stations
-    df = df.filter(~(df['Start station number'] == 31008) & ~(df['Start station number'] == 32051) & ~(
-                df['Start station number'] == 32034))
-
     # make label/target feature
     df = df.withColumn('label', F.log1p(df.Duration))
 
+    # join on 'Start station number'
+    print('Merging rides and stations dataframes!')
     df = df.join(stations, on='Start station number', how='left')
     df = df.withColumn('start_station_long', df['start_station_long'].cast(DoubleType()))
     df = df.withColumn('start_station_lat', df['start_station_lat'].cast(DoubleType()))
-    print(f'Complete dataset has {df.count()} rows')
+
+    # remove non-existent stations
+    df = df.filter(~(df['Start station number'] == 31008) & ~(df['Start station number'] == 32051) & ~(
+            df['Start station number'] == 32034))
+
+    print(f'Complete rides and stations dataset has {df.count()} rows!')
 
     # Feature Transformations #
+    print('Doing Feature Transformations!')
 
     # convert to datetime type
     df = df.withColumn('Start date', F.to_timestamp('Start date', 'yyyy-MM-dd HH:mm:ss'))
@@ -154,7 +158,7 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     # best parameter search
     grid = ParamGridBuilder()
     grid = grid.addGrid(rf.maxDepth, [3, 5])
-    grid = grid.addGrid(rf.numTrees, [50, 100])
+    grid = grid.addGrid(rf.numTrees, [100])
     grid = grid.build()
 
     # run cross validation
