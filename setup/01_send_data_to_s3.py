@@ -43,7 +43,7 @@ def main() -> None:
         for name in archive_names:
             s3.put_object(
                 Bucket=os.getenv('S3_BUCKET'),
-                Key=f'{bucket_project_folder}/bike-share-stations/{name}',
+                Key=f'{bucket_project_folder}/data/rides/{name}',
                 Body=zipf.open(name),
                 ContentType='text/csv'
             )
@@ -53,12 +53,12 @@ def main() -> None:
 
     s3.put_object(
         Bucket=os.getenv('S3_BUCKET'),
-        Key=f'{bucket_project_folder}/bike-share-stations/{stations_csv_name}',
+        Key=f'{bucket_project_folder}/data/stations/{stations_csv_name}',
         Body=open(os.path.join(os.getcwd(), stations_csv_path, stations_csv_name)),
         ContentType='text/csv'
     )
 
-    print('Success - copied bike-share-data to S3!')
+    print('Success - copied data to S3!')
     return
 
 
