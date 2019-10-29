@@ -40,8 +40,8 @@
         {
             "Name": "setup",
             "ScriptBootstrapAction": {
-                "Path": "s3://{s3_bucket}/emr_files/bootstrap_emr.sh",
-                "Args": ["s3://{s3_bucket}/emr_files", "emr_files.tar.gz"]
+                "Path": "s3://{s3_bucket}/pyspark-example-problem/emr-files/bootstrap_emr.sh",
+                "Args": ["s3://{s3_bucket}/pyspark-example-problem/emr-files", "emr-files.tar.gz"]
             }
         }
     ],
