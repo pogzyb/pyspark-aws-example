@@ -54,7 +54,7 @@ def main() -> None:
     s3.put_object(
         Bucket=os.getenv('S3_BUCKET'),
         Key=f'{bucket_project_folder}/data/stations/{stations_csv_name}',
-        Body=open(os.path.join(os.getcwd(), stations_csv_path, stations_csv_name)),
+        Body=open(os.path.join(os.getcwd(), stations_csv_path, stations_csv_name), 'rb'),
         ContentType='text/csv'
     )
 
