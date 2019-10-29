@@ -27,6 +27,8 @@ def main() -> None:
 
     s3 = boto3.client('s3')
 
+    bucket_project_folder = 'pyspark-example-problem'
+
     bike_share_data_url = 'https://s3.amazonaws.com/capitalbikeshare-data/{file_name}'
     zip_file_base = '{year}-capitalbikeshare-tripdata.zip'
 
@@ -41,10 +43,21 @@ def main() -> None:
         for name in archive_names:
             s3.put_object(
                 Bucket=os.getenv('S3_BUCKET'),
-                Key='bike-share-data/{name}'.format(name=name),
+                Key=f'{bucket_project_folder}/bike-share-stations/{name}',
                 Body=zipf.open(name),
                 ContentType='text/csv'
             )
+
+    stations_csv_name = 'capbs_stations.csv'
+    stations_csv_path = '../notebook/data/stations'
+
+    s3.put_object(
+        Bucket=os.getenv('S3_BUCKET'),
+        Key=f'{bucket_project_folder}/bike-share-stations/{stations_csv_name}',
+        Body=open(os.path.join(os.getcwd(), stations_csv_path, stations_csv_name)),
+        ContentType='text/csv'
+    )
+
     print('Success - copied bike-share-data to S3!')
     return
 
