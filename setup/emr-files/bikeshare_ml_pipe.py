@@ -53,6 +53,9 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     # remove rides longer than 1.5 hours
     one_and_a_half_hours = 60 * 60 * 1.5
     df = df.filter(df['Duration'] <= one_and_a_half_hours)
+    # remove rides shorter than 2.5 minutes
+    two_and_a_half_minutes = 60 * 2.5
+    df = df.filter(df['Duration'] >= two_and_a_half_minutes)
 
     # remove unknown 'Member type's
     df = df.filter(~(df['Member type'] == 'Unknown'))
