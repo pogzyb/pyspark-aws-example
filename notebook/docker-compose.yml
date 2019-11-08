@@ -3,15 +3,17 @@ version: "3.5"
 
 services:
   notebook:
-    image: jupyter/pyspark-notebook
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     container_name: notebook
     volumes:
       - "./work:/home/jovyan/work"
       - "./data:/home/jovyan/data"
-      - "./misc:/home/jovyan/misc"
     ports:
       - "8888:8888"
     environment:
       - GRANT_SUDO="yes"
     user:
       "root"
+    command: ["/bin/sh", "-c", "jupyter notebook --allow-root"]
