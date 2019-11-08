@@ -1,6 +1,6 @@
 # bikeshare_ml_pipe.py
 from pyspark.sql import SparkSession
-from pyspark.ml.regression import RandomForestRegressor
+from pyspark.ml.regression import GeneralizedLinearRegression
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.feature import StringIndexer, OneHotEncoder, VectorAssembler
@@ -53,9 +53,9 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     # remove rides longer than 1.5 hours
     one_and_a_half_hours = 60 * 60 * 1.5
     df = df.filter(df['Duration'] <= one_and_a_half_hours)
-    # remove rides shorter than 2.5 minutes
-    two_and_a_half_minutes = 60 * 2.5
-    df = df.filter(df['Duration'] >= two_and_a_half_minutes)
+    # remove rides shorter than 3 minutes
+    three_minutes = 60 * 3
+    df = df.filter(df['Duration'] >= three_minutes)
 
     # remove unknown 'Member type's
     df = df.filter(~(df['Member type'] == 'Unknown'))
@@ -149,8 +149,8 @@ def run_pipeline(name: str, data: str, save: str) -> None:
         outputCol='scaled_features'
     )
 
-    # define RF model
-    rf = RandomForestRegressor(
+    # define GLM model
+    glr = GeneralizedLinearRegression(
         featuresCol='scaled_features'
     )
 
@@ -161,7 +161,7 @@ def run_pipeline(name: str, data: str, save: str) -> None:
             member_encoder,
             vector,
             scaler,
-            rf
+            glr
         ]
     )
 
@@ -170,8 +170,9 @@ def run_pipeline(name: str, data: str, save: str) -> None:
 
     # best parameter search
     grid = ParamGridBuilder()
-    grid = grid.addGrid(rf.maxDepth, [3, 5])
-    grid = grid.addGrid(rf.numTrees, [100])
+    grid = grid.addGrid(glr.maxIter, [25, 35])
+    grid = grid.addGrid(glr.family, ['gaussian', 'gamma', 'poisson'])
+    grid = grid.addGrid(glr.regParam, [0.0, 0.2, 0.5])
     grid = grid.build()
 
     # run cross validation
