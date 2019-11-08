@@ -1,3 +1,4 @@
 FROM jupyter/pyspark-notebook
-RUN pip install lightgbm==2.3.0
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt
 WORKDIR /home/jovyan
