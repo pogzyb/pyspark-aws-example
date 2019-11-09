@@ -1,6 +1,6 @@
 # bikeshare_ml_pipe.py
 from pyspark.sql import SparkSession
-from pyspark.ml.regression import GeneralizedLinearRegression
+from pyspark.ml.regression import GeneralizedLinearRegression, RandomForestRegressor
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.feature import StringIndexer, OneHotEncoder, VectorAssembler
@@ -53,25 +53,26 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     # remove rides longer than 1.5 hours
     one_and_a_half_hours = 60 * 60 * 1.5
     df = df.filter(df['Duration'] <= one_and_a_half_hours)
+
     # remove rides shorter than 3 minutes
     three_minutes = 60 * 3
     df = df.filter(df['Duration'] >= three_minutes)
 
     # remove unknown 'Member type's
-    df = df.filter(~(df['Member type'] == 'Unknown'))
+    df = df.filter(df['Member type'] != 'Unknown')
 
-    # make label/target feature
+    # remove non-existent stations
+    df = df.filter(~(df['Start station number'] == 31008) & ~(
+            df['Start station number'] == 32051) & ~(df['Start station number'] == 32034))
+
+    # make target feature
     df = df.withColumn('label', F.log1p(df.Duration))
 
     # join on 'Start station number'
     print('Merging rides and stations dataframes!')
-    df = df.join(stations, on='Start station number', how='left')
+    df = df.join(stations, on='Start station number')
     df = df.withColumn('start_station_long', df['start_station_long'].cast(DoubleType()))
     df = df.withColumn('start_station_lat', df['start_station_lat'].cast(DoubleType()))
-
-    # remove non-existent stations
-    df = df.filter(~(df['Start station number'] == 31008) & ~(df['Start station number'] == 32051) & ~(
-            df['Start station number'] == 32034))
 
     print(f'Complete rides and stations dataset has {df.count()} rows!')
 
@@ -101,6 +102,9 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     df = df.withColumn('cos_minute', F.cos(2 * pi * df['minute'] / 60))
     df = df.withColumn('cos_hour', F.cos(2 * pi * df['hour'] / 24))
 
+    df = df.withColumn('hour_and_day_of_week', df['hour'].cast(StringType()) + '_' + df['day_of_week'].cast(StringType()))
+    df = df.withColumn('member_type_and_day_of_week', df['Member type'] + '_' + df['day_of_week'].cast(StringType()))
+
     # drop unused columns
     drop_columns = [
         'Start date',
@@ -114,6 +118,8 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     ]
     df = df.drop(*drop_columns)
 
+    # df.select([F.count(F.when(F.isnan(c), c)).alias(c) for c in df.columns]).show()
+
     # Model and Pipeline #
 
     # split training and test
@@ -126,7 +132,6 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     # create vector of features named 'features'
     vector = VectorAssembler(
         inputCols=[
-            'member_enc',
             'start_station_lat',
             'start_station_long',
             'sin_day_of_week',
@@ -139,6 +144,7 @@ def run_pipeline(name: str, data: str, save: str) -> None:
             'cos_minute',
             'sin_hour',
             'cos_hour',
+            'member_enc'
         ],
         outputCol='features'
     )
@@ -149,8 +155,8 @@ def run_pipeline(name: str, data: str, save: str) -> None:
         outputCol='scaled_features'
     )
 
-    # define GLM model
-    glr = GeneralizedLinearRegression(
+    # define model
+    model = GeneralizedLinearRegression(
         featuresCol='scaled_features'
     )
 
@@ -161,7 +167,7 @@ def run_pipeline(name: str, data: str, save: str) -> None:
             member_encoder,
             vector,
             scaler,
-            glr
+            model
         ]
     )
 
@@ -170,9 +176,11 @@ def run_pipeline(name: str, data: str, save: str) -> None:
 
     # best parameter search
     grid = ParamGridBuilder()
-    grid = grid.addGrid(glr.maxIter, [25, 35])
-    grid = grid.addGrid(glr.family, ['gaussian', 'gamma', 'poisson'])
-    grid = grid.addGrid(glr.regParam, [0.0, 0.2, 0.5])
+    # grid = grid.addGrid(model.maxDepth, [5, 7])
+    # grid = grid.addGrid(model.numTrees, [200, 500])
+    grid = grid.addGrid(model.maxIter, [40, 50])
+    grid = grid.addGrid(model.family, ['gaussian', 'gamma'])
+    grid = grid.addGrid(model.regParam, [0.0, 0.1])
     grid = grid.build()
 
     # run cross validation
@@ -183,7 +191,7 @@ def run_pipeline(name: str, data: str, save: str) -> None:
         numFolds=7
     )
 
-    print('Doing Cross Validation')
+    print('Doing Cross Validation!')
 
     cv_models = cv.fit(train)
     print(f'CV results: {cv_models.avgMetrics} (RMSE)')
@@ -193,14 +201,14 @@ def run_pipeline(name: str, data: str, save: str) -> None:
     print(f'Best params:\n{best_params}')
 
     results = cv_models.transform(test)
-    print(f'CV Results on holdout dataset: {evaluation.evaluate(results)} (RMSE)')
+    print(f'CV results on holdout dataset: {evaluation.evaluate(results)} (RMSE)')
 
-    print('Re-fitting pipeline on entire dataset')
+    print('Re-fitting pipeline on entire dataset!')
     cv_models = cv.fit(df)
 
-    print('Saving to pipeline into S3')
+    print('Saving to pipeline into S3!')
     entire_dataset_best_model = cv_models.bestModel
-    entire_dataset_best_model.save(f'{save}/{name}.v1')
+    entire_dataset_best_model.save(f'{save}/{name}')
     print('Done!')
 
     return
