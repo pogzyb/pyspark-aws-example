@@ -1,2 +1,4 @@
 lightgbm==2.3.0
 folium==0.10.0
+py4j==0.10.7
+pyspark2pmml==0.5.1
